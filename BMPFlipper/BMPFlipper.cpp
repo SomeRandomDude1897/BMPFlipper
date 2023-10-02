@@ -28,14 +28,14 @@ struct pixel {
 };
 int main()
 {
-    FILE* file = fopen("berry.bmp", "rb");
+    FILE* file = fopen("sea.bmp", "rb");
 
     header_data headdata;
     unsigned char info[14];
 
     fread(info, 1, 14, file);
     fread((char*)&headdata, 1, 40, file);
-    cout << *(int*)&info[2] / 1024 << endl;
+    cout << "File size: " << *(int*)&info[2] / 1024 << " bytes" << endl;
 
     unsigned char* extra_header_data = new unsigned char[headdata.dib - 40];
 
@@ -47,14 +47,13 @@ int main()
 
     fread(data, 1, size, file);
 
-    cout << headdata.width << " " << headdata.height << endl;
     fclose(file);
 
     header_data headdata2 = headdata;
     headdata2.width = headdata.height;
     headdata2.height = headdata.width;
 
-    FILE* outfile1 = fopen("1.bmp", "wb");
+    FILE* outfile1 = fopen("flipped right.bmp", "wb");
     fwrite((const char*)&info, 1, 14, outfile1);
     fwrite((const char*)&headdata2, 1, 40, outfile1);
     fwrite(extra_header_data, 1, headdata.dib - 40, outfile1);
@@ -95,7 +94,7 @@ int main()
 
     fclose(outfile1);
 
-    FILE* outfile2 = fopen("2.bmp", "wb");
+    FILE* outfile2 = fopen("flipped left.bmp", "wb");
     fwrite((const char*)&info, 1, 14, outfile2);
     fwrite((const char*)&headdata2, 1, 40, outfile2);
     fwrite(extra_header_data, 1, headdata.dib - 40, outfile2);
@@ -142,7 +141,7 @@ int main()
             summ += gauss[h][w];
         }
     }
-    FILE* outfile3 = fopen("3.bmp", "wb");
+    FILE* outfile3 = fopen("with gaussian filter.bmp", "wb");
     fwrite((const char*)&info, 1, 14, outfile3);
     fwrite((const char*)&headdata, 1, 40, outfile3);
     fwrite(extra_header_data, 1, headdata.dib - 40, outfile3);
