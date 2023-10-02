@@ -28,7 +28,7 @@ struct pixel {
 };
 int main()
 {
-    FILE* file = fopen("field.bmp", "rb");
+    FILE* file = fopen("berry.bmp", "rb");
 
     header_data headdata;
     unsigned char info[14];
@@ -131,7 +131,7 @@ int main()
         fwrite(towriteline, 1, headdata.height * 3 + extraheight, outfile2);
     }
     double pi = 3.14;
-    int r = 15;
+    int r = 2;
     double sigma = 3;
     vector<vector<double>> gauss;
     double summ = 0;
