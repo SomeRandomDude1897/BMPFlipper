@@ -3,7 +3,8 @@
 #include <vector>
 
 #pragma warning(disable:4996)
-#define min(a,b) ((a)<(b)?(a):(b))
+//Ты чево делаешь, а ну убери. Курсик на степике проходил? Там говорят, что люди на макросах вешаются
+#define min(a,b) ((a)<(b)?(a):(b)) 
 
 using namespace std;
 
@@ -21,6 +22,7 @@ struct header_data
     uint32_t colornum{ 0 };
     uint32_t impcolors{ 0 };
 };
+// Дааа, очень хорошо, было бы. Если бы это были правильные типы. Цвет занимает 8 бит, а не 32.
 struct pixel {
     uint32_t b;
     uint32_t g;
@@ -30,12 +32,12 @@ int main()
 {
     FILE* file = fopen("sea.bmp", "rb");
 
-    header_data headdata;
-    unsigned char info[14];
+    header_data headdata; //плохое имя у переменной. Слова должны разделяться либо сменой регистра, либо нижним подчеркиванием
+    unsigned char info[14]; //Ну раз уж тот заголовок бмп прочитал в структуру, мог бы и этот
 
     fread(info, 1, 14, file);
     fread((char*)&headdata, 1, 40, file);
-    cout << "File size: " << *(int*)&info[2] / 1024 << " bytes" << endl;
+    cout << "File size: " << *(int*)&info[2] / 1024 << " bytes" << endl;  // не пришлось бы тогда так извращаться
 
     unsigned char* extra_header_data = new unsigned char[headdata.dib - 40];
 
@@ -65,6 +67,7 @@ int main()
         unsigned char* towriteline = new unsigned char[headdata.height * 3 + extraheight];
         for (int x = 0; x < headdata.height; x++)
         {
+            //Вот тут бы пригодилась та структура пикселя, если бы она была верной, конечно
             int b = data[(x * headdata.width + (headdata.width - y - 1)) * 3];
             int g = data[(x * headdata.width + (headdata.width - y - 1)) * 3 + 1];
             int r = data[(x * headdata.width + (headdata.width - y - 1)) * 3 + 2];
@@ -74,6 +77,7 @@ int main()
         }
         for (int i = 0; i < extraheight; ++i)
         {
+            //А разве подкладка не только у строк?
             towriteline[headdata.height * 3 + i * 3] = 0;
             towriteline[headdata.height * 3 + i * 3 + 1] = 0;
             towriteline[headdata.height * 3 + i * 3 + 2] = 0;
@@ -91,7 +95,13 @@ int main()
         }
         fwrite(towriteline, 1, headdata.height * 3 + extraheight, outfile1);
     }
-
+    /* Короче я устал. Смотри: тут всё довольно плохо. Просто куча кода намешанная в мэйн. Так быть не должно.
+     * А вот если я попрошу тебя сделать еще три поворота налево, ты трижды код скопируешь? Ну уж нет.
+     * Поэтому надо всё разбить ну хотя бы на функции. А лучше вообще организовать класс, который будет иметь
+     * это всё как методы. В общем не расстраивайся, это всё еще зачтется на хорошую оценку, потому что работу
+     * ты проделал. Но наша цель стать хорошими программистами, так что придется еще попотеть, если ты хочешь именно
+     * этого. Поэтому разберись сначала, как делать функции. Затем, как делать классы, и сделай красивенько. 
+     */
     fclose(outfile1);
 
     FILE* outfile2 = fopen("flipped left.bmp", "wb");
