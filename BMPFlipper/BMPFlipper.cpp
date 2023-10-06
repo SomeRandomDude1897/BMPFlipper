@@ -32,7 +32,7 @@ struct file_data
 */
 int main()
 {
-    FILE* file = fopen("field.bmp", "rb");
+    FILE* file = fopen("berry.bmp", "rb");
 
     header_data head_data;
     unsigned char info[14]; // Я не понимаю почему, но по какой-то причине у меня не считывается через структуру размер файла, поэтому единственное, что я придумал это считать данные всырую
@@ -143,7 +143,7 @@ int main()
 
 
     double pi = 3.14;
-    int radius = 5;
+    int radius = 2;
     double sigma = 3;
     vector<vector<double>> gauss;
     double summ = 0;
