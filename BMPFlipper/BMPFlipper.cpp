@@ -206,8 +206,11 @@ int main()
         fwrite(towriteline2, 1, head_data.width * 3 + extraheight, outfile3);
     }
 
+    fclose(outfile3);
+
 
     delete[] data;
+
 
     return 0;
 
