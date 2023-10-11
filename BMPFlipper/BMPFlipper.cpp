@@ -21,10 +21,5 @@ int main()
 
     delete bmp;
 
-    while (true)
-    {
-
-    }
-
     return 0;
 }
