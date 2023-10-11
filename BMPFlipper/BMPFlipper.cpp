@@ -9,7 +9,7 @@ int main()
 {
     BMP* bmp = new BMP();
 
-    bmp -> read_file("berry.bmp");
+    bmp -> read_file("sea.bmp");
 
     bmp -> print_file_size();
 

@@ -36,9 +36,11 @@ public:
     void apply_gauss_filter();
 private:
     unsigned char info[14]; // Я честно хотел бы сделать нормально через структуру, но по какой-то непонятной мне причине я не могу узнать размер файла если так делаю, он всегда выводит 14 вместо него (>_<)
+    int extra_data_size = 0;
+    unsigned char* extra_data;
     header_data head_data;
     std::vector<pixel> data;
-    int extraheight;
-    int extrawidth;
+    int extra_height;
+    int extra_width;
 };
 

@@ -10,8 +10,8 @@
 BMP::BMP()
 {
 	std::cout << "created BMP structure" << '\n';
-    extraheight = head_data.height % 4;
-    extrawidth = head_data.width % 4;
+    extra_height = head_data.height % 4;
+    extra_width = head_data.width % 4;
 }
 
 BMP::~BMP()
@@ -37,10 +37,16 @@ void BMP::apply_gauss_filter()
             summ += gauss[h][w];
         }
     }
+    for (int h = 0; h < 2 * radius; h++) {
+        for (int w = 0; w < 2 * radius; w++) {
+            gauss[h][w] = gauss[h][w] / summ;
+        }
+    }
     FILE* outfile = fopen("with gaussian filter.bmp", "wb");
     fwrite((const char*)&info, 1, 14, outfile);
     fwrite((const char*)&head_data, 1, 40, outfile);
-    pixel* line_to_write = new pixel[head_data.width + extrawidth];
+    fwrite((const char*)&extra_data, 1, extra_data_size, outfile);
+    pixel* line_to_write = new pixel[head_data.width + extra_width];
     double gaussum[3];
     for (int y = 0; y < head_data.height; y++)
     {
@@ -54,9 +60,9 @@ void BMP::apply_gauss_filter()
                 for (int w = 0; w < 2 * radius; w++) {
                     if (y + h - radius >= 0 && x + w - radius >= 0 && y + h - radius < head_data.height && x + w - radius < head_data.width)
                     {
-                        gaussum[0] += gauss[h][w] / summ * data[((y + h - radius) * head_data.width + x - radius + w)].b;
-                        gaussum[1] += gauss[h][w] / summ * data[((y + h - radius) * head_data.width + x - radius + w)].g;
-                        gaussum[2] += gauss[h][w] / summ * data[((y + h - radius) * head_data.width + x - radius + w)].r;
+                        gaussum[0] += gauss[h][w] * data[((y + h - radius) * head_data.width + x - radius + w)].b;
+                        gaussum[1] += gauss[h][w] * data[((y + h - radius) * head_data.width + x - radius + w)].g;
+                        gaussum[2] += gauss[h][w] * data[((y + h - radius) * head_data.width + x - radius + w)].r;
                     }
                 }
             }
@@ -65,19 +71,19 @@ void BMP::apply_gauss_filter()
             data[((y)*head_data.width + x)].r = (uint8_t) gaussum[2];
             line_to_write[x] = data[((y)*head_data.width + x)];
         }
-        for (int i = 0; i < extrawidth; ++i)
+        for (int i = 0; i < extra_width; ++i)
         {
             line_to_write[head_data.width + i] = pixel();
         }
-        fwrite(line_to_write, 1, head_data.width * 3 + extrawidth, outfile);
+        fwrite(line_to_write, 1, head_data.width * 3 + extra_width, outfile);
     }
-    for (int i = 0; i < extraheight; ++i)
+    for (int i = 0; i < extra_height; ++i)
     {
-        for (int x = 0; x < head_data.width + extraheight; x++)
+        for (int x = 0; x < head_data.width + extra_height; x++)
         {
             line_to_write[x] = pixel();
         }
-        fwrite(line_to_write, 1, head_data.width * 3 + extraheight, outfile);
+        fwrite(line_to_write, 1, head_data.width * 3 + extra_height, outfile);
     }
     delete[] line_to_write;
     fclose(outfile);
@@ -94,9 +100,10 @@ void BMP::flip_left_and_save()
     FILE* outfile = fopen("flipped left.bmp", "wb");
     fwrite((const char*)&info, 1, 14, outfile);
     fwrite((const char*)&head_data_temp, 1, 40, outfile);
+    fwrite(extra_data, 1, extra_data_size, outfile);
 
 
-    pixel* line_to_write = new pixel[head_data.height + extraheight];
+    pixel* line_to_write = new pixel[head_data.height + extra_height];
 
     for (int y = 0; y < head_data.width; y++)
     {
@@ -105,21 +112,21 @@ void BMP::flip_left_and_save()
         {
             line_to_write[(head_data.height - x)] = data[(x * head_data.width + (head_data.width - y - 1))];
         }
-        for (int i = 0; i < extraheight; ++i)
+        for (int i = 0; i < extra_height; ++i)
         {
             line_to_write[head_data.height + i] = pixel();
         }
-        fwrite(line_to_write, 1, head_data.height * 3 + extraheight, outfile);
+        fwrite(line_to_write, 1, head_data.height * 3 + extra_height, outfile);
 
     }
 
-    for (int i = 0; i < extrawidth; ++i)
+    for (int i = 0; i < extra_width; ++i)
     {
-        for (int x = 0; x < head_data.height + extraheight; x++)
+        for (int x = 0; x < head_data.height + extra_height; x++)
         {
             line_to_write[head_data.height * x + i] = pixel();
         }
-        fwrite(line_to_write, 1, head_data.height * 3 + extraheight, outfile);
+        fwrite(line_to_write, 1, head_data.height * 3 + extra_height, outfile);
     }
     delete[] line_to_write;
     fclose(outfile);
@@ -130,14 +137,15 @@ void BMP::flip_left_and_save()
 void BMP::flip_right_and_save()
 {
     header_data head_data_temp = head_data;
-    head_data_temp.width = head_data.height;
-    head_data_temp.height = head_data.width;
+    head_data_temp.width = head_data.height + extra_height;
+    head_data_temp.height = head_data.width + extra_width;
 
     FILE* outfile = fopen("flipped right.bmp", "wb");
     fwrite((const char*)&info, 1, 14, outfile);
     fwrite((const char*)&head_data_temp, 1, 40, outfile);
+    fwrite(extra_data, 1, extra_data_size, outfile);
 
-    pixel* line_to_write = new pixel[head_data.height + extraheight];
+    pixel* line_to_write = new pixel[head_data.height + extra_height];
 
     for (int y = 0; y < head_data.width; y++)
     {
@@ -146,21 +154,21 @@ void BMP::flip_right_and_save()
         {
             line_to_write[x] = data[(x * head_data.width + (head_data.width - y - 1))];
         }
-        for (int i = 0; i < extraheight; ++i)
+        for (int i = 0; i < extra_height; ++i)
         {
             line_to_write[head_data.height + i] = pixel();
         }
-        fwrite(line_to_write, 1, head_data.height * 3 + extraheight, outfile);
+        fwrite(line_to_write, 1, head_data.height * 3 + extra_height, outfile);
 
     }
 
-    for (int i = 0; i < extrawidth; ++i)
+    for (int i = 0; i < extra_width; ++i)
     {
-        for (int x = 0; x < head_data.height + extraheight; x++)
+        for (int x = 0; x < head_data.height + extra_height; x++)
         {
             line_to_write[head_data.height * x + i] = pixel();
         }
-        fwrite(line_to_write, 1, head_data.height * 3 + extraheight, outfile);
+        fwrite(line_to_write, 1, head_data.height * 3 + extra_height, outfile);
     }
     delete[] line_to_write;
     fclose(outfile);
@@ -175,7 +183,13 @@ void BMP::read_file(const char* file_name)
 
     fread(info, 1, 14, file);
     fread((char*)&head_data, 1, 40, file);
-
+    if (head_data.dib - 40 > 0) // ≈сли есть дополнительные данные, € их считываю
+    {
+        extra_data_size = head_data.dib - 40;
+        extra_data = new unsigned char[extra_data_size];
+        fread(extra_data, 1, extra_data_size, file);
+    }
+    std::cout << extra_data_size << '\n';
     int size = head_data.width * head_data.height * 3;
 
     unsigned char* data_temp = new unsigned char[size];
@@ -194,6 +208,8 @@ void BMP::read_file(const char* file_name)
         }
     }
     delete[] data_temp;
+
+    std::cout << "Succesfully read file" << '\n';
     
     fclose(file);
 }
