@@ -21,6 +21,7 @@ BMP::~BMP()
 
 void BMP::print_file_size()
 {
+    /* У int необязательно размер 4 байта, стоит использовать int32_t*/
     std::cout << "File size: " << *(int*)&info[2] / 1024 << " kbytes" << '\n';
 }
 
@@ -33,6 +34,7 @@ void BMP::apply_gauss_filter()
     for (int h = 0; h < 2 * radius; h++) {
         gauss.push_back(std::vector<double>());
         for (int w = 0; w < 2 * radius; w++) {
+	    /* Выражение вот это длинное стоило разделить на несколько, чтобы было удобнее читать */
             gauss[h].push_back(exp(-((h - radius) * (h - radius) + (w - radius) * (w - radius)) / (2 * (sigma * sigma))) / (2 * pi * sigma * sigma));
             summ += gauss[h][w];
         }
@@ -43,11 +45,17 @@ void BMP::apply_gauss_filter()
         }
     }
     FILE* outfile = fopen("with gaussian filter.bmp", "wb");
+    /* Эту запись можно было бы объединить в приватную функцию. Обычно, если у тебя где-то дважды одинаковый код,
+     * стоит оформить его в функцию */
     fwrite((const char*)&info, 1, 14, outfile);
     fwrite((const char*)&head_data, 1, 40, outfile);
     fwrite((const char*)&extra_data, 1, extra_data_size, outfile);
+    /* Здесь тоже можно было бы сделать вектор, чтобы потом не следить за удалением. 
+     * Позже вы узнаете про unique_ptr, который тоже мог бы быть хорошим решением */
     pixel* line_to_write = new pixel[head_data.width + extra_width];
     double gaussum[3];
+    /* Получилась очень сильная вложенность. Это тоже плохо читается. Такое стоит как-то разбивать:
+     * или добавив вспомогательную функцию или как-то иначе */
     for (int y = 0; y < head_data.height; y++)
     {
 
@@ -77,6 +85,7 @@ void BMP::apply_gauss_filter()
         }
         fwrite(line_to_write, 1, head_data.width * 3 + extra_width, outfile);
     }
+    /* Насколько я знаю, подкладка требуется только в строках, но не в столбцах */
     for (int i = 0; i < extra_height; ++i)
     {
         for (int x = 0; x < head_data.width + extra_height; x++)
@@ -183,7 +192,7 @@ void BMP::read_file(const char* file_name)
 
     fread(info, 1, 14, file);
     fread((char*)&head_data, 1, 40, file);
-    if (head_data.dib - 40 > 0) // ���� ���� �������������� ������, � �� ��������
+    if (head_data.dib - 40 > 0) // Åñëè åñòü äîïîëíèòåëüíûå äàííûå, ÿ èõ ñ÷èòûâàþ
     {
         extra_data_size = head_data.dib - 40;
         extra_data = new unsigned char[extra_data_size];
@@ -191,7 +200,10 @@ void BMP::read_file(const char* file_name)
     }
     std::cout << extra_data_size << '\n';
     int size = head_data.width * head_data.height * 3;
-
+    /* Можно было бы читать прямо в data У вектора есть метод, data.data(),
+     * который вернет указатель на внутренне хранилище. Этот указатель можно
+     * привести к указателю на char и тоже в него писать. Пиксели бы заполнились
+     * правильно автоматически (если у них поля в правильном порядке) */
     unsigned char* data_temp = new unsigned char[size];
     fread(data_temp, 1, size, file);
 
